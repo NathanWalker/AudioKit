@@ -26,7 +26,7 @@
 ///  So it can be used to convert any readable file (compressed or not) into a PCM Linear Encoded AKAudioFile
 ///  (That is not possible using AKAudioFile export method, that relies on AVAsset Export methods)
 ///
-extension AKAudioFile {
+@objc extension AKAudioFile {
 
     /// typealias for AKAudioFile Async Process Completion Handler
     ///

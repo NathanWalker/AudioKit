@@ -11,7 +11,7 @@
 //  But it can be applied to any readable file (.wav, .m4a, .mp3...)
 //
 
-extension AKAudioFile {
+@objc extension AKAudioFile {
 
     /// Normalize an AKAudioFile to have a peak of newMaxLevel dB.
     ///
