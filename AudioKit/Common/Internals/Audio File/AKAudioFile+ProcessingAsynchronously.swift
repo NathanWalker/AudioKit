@@ -26,7 +26,7 @@
 ///  So it can be used to convert any readable file (compressed or not) into a PCM Linear Encoded AKAudioFile
 ///  (That is not possible using AKAudioFile export method, that relies on AVAsset Export methods)
 ///
-@objc extension AKAudioFile {
+extension AKAudioFile {
 
     /// typealias for AKAudioFile Async Process Completion Handler
     ///
@@ -42,7 +42,7 @@
     /// - m4a: MPEG 4 Audio
     /// - caf: Core Audio Format
     ///
-    public enum ExportFormat {
+    public enum ExportFormat: Int {
         /// Waveform Audio File Format (WAVE, or more commonly known as WAV due to its filename extension)
         case wav
 
@@ -59,7 +59,7 @@
         case caf
 
         // Returns a Uniform Type identifier for each audio file format
-        fileprivate var UTI: CFString {
+        public var UTI: CFString {
             switch self {
             case .wav:
                 return AVFileTypeWAVE as CFString
@@ -75,7 +75,7 @@
         }
 
         // Available Export Formats
-        static var supportedFileExtensions: [String] {
+        static public var supportedFileExtensions: [String] {
             return ["wav", "aif", "mp4", "m4a", "caf"]
         }
     }
@@ -426,7 +426,7 @@
     // MARK: - ProcessFactory Private class
 
     // private process factory
-    fileprivate class ProcessFactory {
+    open class ProcessFactory: NSObject {
         fileprivate var processIDs = [Int]()
         fileprivate var lastProcessID: Int = 0
 
@@ -488,7 +488,7 @@
         }
 
         // Append Reverse Process
-        fileprivate func queueReverseAsyncProcess(sourceFile: AKAudioFile,
+        public func queueReverseAsyncProcess(sourceFile: AKAudioFile,
                                                   baseDir: BaseDirectory,
                                                   name: String,
                                                   completionHandler: @escaping AsyncProcessCallback) {
@@ -536,7 +536,7 @@
         }
 
         // Append Append Process
-        fileprivate func queueAppendAsyncProcess(sourceFile: AKAudioFile,
+        public func queueAppendAsyncProcess(sourceFile: AKAudioFile,
                                                  appendedFile: AKAudioFile,
                                                  baseDir: BaseDirectory,
                                                  name: String,
@@ -586,7 +586,7 @@
         }
 
         // Queue extract Process
-        fileprivate func queueExtractAsyncProcess(sourceFile: AKAudioFile,
+        public func queueExtractAsyncProcess(sourceFile: AKAudioFile,
                                                   fromSample: Int64 = 0,
                                                   toSample: Int64 = 0,
                                                   baseDir: BaseDirectory,
@@ -637,11 +637,11 @@
             }
         }
 
-        fileprivate var queuedProcessCount: Int {
+        public var queuedProcessCount: Int {
             return processIDs.count
         }
 
-        fileprivate var scheduledProcessesCount: Int {
+        public var scheduledProcessesCount: Int {
             return lastProcessID
         }
     }
@@ -649,12 +649,12 @@
     // MARK: - ExportFactory Private classes
 
     // private ExportSession wraps an AVAssetExportSession with an id and the completion callback
-    fileprivate class ExportSession {
-        fileprivate var avAssetExportSession: AVAssetExportSession
-        fileprivate var id: Int
-        fileprivate var callback: AsyncProcessCallback
+    open class ExportSession: NSObject {
+        public var avAssetExportSession: AVAssetExportSession
+        public var id: Int
+        public var callback: AsyncProcessCallback
 
-        fileprivate init(AVAssetExportSession avAssetExportSession: AVAssetExportSession,
+        public init(AVAssetExportSession avAssetExportSession: AVAssetExportSession,
                          callback: @escaping AsyncProcessCallback) {
             self.avAssetExportSession = avAssetExportSession
             self.callback = callback
@@ -664,17 +664,17 @@
     }
 
     // Export Factory is a singleton that handles Export Sessions serially
-    fileprivate class ExportFactory {
+    open class ExportFactory: NSObject {
 
-        fileprivate static var exportSessions = [Int: ExportSession]()
-        fileprivate static var lastExportSessionID: Int = 0
-        fileprivate static var isExporting = false
-        fileprivate static var currentExportProcessID: Int = 0
+        static public var exportSessions = [Int: ExportSession]()
+        static public var lastExportSessionID: Int = 0
+        static public var isExporting = false
+        static public var currentExportProcessID: Int = 0
 
         // Singleton
-        static let sharedInstance = ExportFactory()
+        static public let sharedInstance = ExportFactory()
 
-        fileprivate static func completionHandler() {
+        static public func completionHandler() {
 
             if let session = exportSessions[currentExportProcessID] {
                 switch session.avAssetExportSession.status {
@@ -719,7 +719,7 @@
         }
 
         // Append the exportSession to the ExportFactory Export Queue
-        fileprivate static func queueExportSession(session: ExportSession) {
+        static public func queueExportSession(session: ExportSession) {
             exportSessions[session.id] = session
 
             if !isExporting {

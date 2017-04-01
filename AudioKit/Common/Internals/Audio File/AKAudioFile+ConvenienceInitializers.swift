@@ -24,7 +24,7 @@ func || (lhs: Bool, rhs: NSError) throws -> Bool {
   return lhs
 }
 
-@objc extension AKAudioFile {
+extension AKAudioFile {
 
     /// Opens a file for reading.
     ///

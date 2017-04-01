@@ -6,7 +6,7 @@
 //  Copyright © 2017 Aurelius Prochazka. All rights reserved.
 //
 
-@objc extension AKAudioFile {
+extension AKAudioFile {
 
     /// Create an AKSampler loaded with the current AKAudioFile
     public var sampler: AKSampler? {
