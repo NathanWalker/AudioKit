@@ -8,7 +8,7 @@
 //
 //
 
-@objc extension AKAudioFile {
+extension AKAudioFile {
 
     /// Returns a silent AKAudioFile with a length set in samples.
     ///
