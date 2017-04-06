@@ -326,19 +326,19 @@ extension AKAudioFile {
             }
         }
 
-        let asset = AVURLAsset(url: url)
+        let asset = AVURLAsset(url: URL(fileURLWithPath: url.absoluteString))
         if let internalExportSession = AVAssetExportSession(asset: asset, presetName: avExportPreset) {
             AKLog("internalExportSession session created")
 
             var filePath: String = ""
             var fileName = name
 
-            let fileExt = String(describing: exportFormat)
+            // let fileExt = String(describing: exportFormat)
 
             // only add the file extension if it isn't already there
-            if !fileName.hasSuffix(fileExt) {
-                fileName += "." + fileExt
-            }
+            // if !fileName.hasSuffix(fileExt) {
+            //     fileName += "." + fileExt
+            // }
 
             switch baseDir {
             case .temp:
