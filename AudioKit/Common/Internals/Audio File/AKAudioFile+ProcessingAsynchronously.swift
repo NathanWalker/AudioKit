@@ -42,7 +42,7 @@ extension AKAudioFile {
     /// - m4a: MPEG 4 Audio
     /// - caf: Core Audio Format
     ///
-    public enum ExportFormat: Int {
+    @objc public enum ExportFormat: Int {
         /// Waveform Audio File Format (WAVE, or more commonly known as WAV due to its filename extension)
         case wav
 
@@ -57,30 +57,31 @@ extension AKAudioFile {
 
         /// Core Audio Format
         case caf
-
-        // Returns a Uniform Type identifier for each audio file format
-        public var UTI: CFString {
-            switch self {
-            case .wav:
-                return AVFileTypeWAVE as CFString
-            case .aif:
-                return AVFileTypeAIFF as CFString
-            case .mp4:
-                return AVFileTypeAppleM4A as CFString
-            case .m4a:
-                return AVFileTypeAppleM4A as CFString
-            case .caf:
-                return AVFileTypeCoreAudioFormat as CFString
-            }
-        }
-
-        // Available Export Formats
-        static public var supportedFileExtensions: [String] {
-            return ["wav", "aif", "mp4", "m4a", "caf"]
-        }
+        
     }
 
     // MARK: - AKAudioFile public interface with private AKAudioFile ProcessFactory singleton
+
+    // Returns a Uniform Type identifier for each audio file format
+    static public func stringUTI(type: ExportFormat) -> CFString {
+        switch type {
+        case .wav:
+            return AVFileTypeWAVE as CFString
+        case .aif:
+            return AVFileTypeAIFF as CFString
+        case .mp4:
+            return AVFileTypeAppleM4A as CFString
+        case .m4a:
+            return AVFileTypeAppleM4A as CFString
+        case .caf:
+            return AVFileTypeCoreAudioFormat as CFString
+        }
+    }
+
+    // Available Export Formats
+    static public var supportedFileExtensions: [String] {
+        return ["wav", "aif", "mp4", "m4a", "caf"]
+    }
 
     /// Returns the remaining not completed queued Async processes (Int)
     static public var queuedAsyncProcessCount: Int {
@@ -296,7 +297,7 @@ extension AKAudioFile {
         let fromFileExt = fileExt.lowercased()
 
         // Only mp4, m4a, .wav, .aif can be exported...
-        guard ExportFormat.supportedFileExtensions.contains(fromFileExt) else {
+        guard AKAudioFile.supportedFileExtensions.contains(fromFileExt) else {
             AKLog("ERROR: AKAudioFile \".\(fromFileExt)\" is not supported for export!...")
             callback(nil,
                      NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotCreateFile, userInfo: nil))
@@ -325,7 +326,7 @@ extension AKAudioFile {
             }
         }
 
-        let asset = AVURLAsset(url: URL(fileURLWithPath: url.absoluteString))
+        let asset = AVURLAsset(url: url)
         if let internalExportSession = AVAssetExportSession(asset: asset, presetName: avExportPreset) {
             AKLog("internalExportSession session created")
 
@@ -386,7 +387,7 @@ extension AKAudioFile {
 
             internalExportSession.outputURL = URL(fileURLWithPath: filePath)
             // Sets the output file encoding (avoid .wav encoded as m4a...)
-            internalExportSession.outputFileType = exportFormat.UTI as String
+            internalExportSession.outputFileType = AKAudioFile.stringUTI(type: exportFormat) as String
 
             // In and OUT times triming settings
             let inFrame: Int64
@@ -431,7 +432,7 @@ extension AKAudioFile {
         fileprivate var lastProcessID: Int = 0
 
         // Singleton
-        static let sharedInstance = ProcessFactory()
+        static public let sharedInstance = ProcessFactory()
 
         // The queue that will be used for background AKAudioFile Async Processing
         fileprivate let processQueue = DispatchQueue(label: "AKAudioFileProcessQueue", attributes: [])

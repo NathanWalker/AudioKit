@@ -35,7 +35,7 @@ extension AKAudioFile {
     ///
     public convenience init(readFileName name: String,
                             baseDir: BaseDirectory = .resources) throws {
-        let path: String = try baseDir.create(file: name)
+        let path: String = try AKAudioFile.createFile(dir: baseDir, file: name)
         try self.init(forReading: URL(fileURLWithPath: path))
     }
 
@@ -68,7 +68,7 @@ extension AKAudioFile {
                             settings: [String : Any] = AKSettings.audioFormat.settings)
         throws {
             let extPath: String = "\(name ?? UUID().uuidString).caf"
-            let filePath: String = try baseDir.create(file: extPath, write: true)
+            let filePath: String = try AKAudioFile.createFile(dir: baseDir, file: extPath, write: true)
             let nsurl = try URL(string: filePath) ?? .fileCreateError
 
             // Directory exists ?
