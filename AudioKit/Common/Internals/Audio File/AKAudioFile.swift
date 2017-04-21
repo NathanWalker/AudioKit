@@ -172,7 +172,7 @@ open class AKAudioFile: AVAudioFile {
     /// - Resources: Resources Directory (Shouldn't be used for writing / recording files)
     /// - Custom: The same directory as the input file. This is mainly for OS X projects.
     ///
-    public enum BaseDirectory {
+    @objc public enum BaseDirectory: Int {
         /// Temporary directory
         case temp
 
@@ -184,22 +184,22 @@ open class AKAudioFile: AVAudioFile {
 
         /// Same directory as the input file
         case custom
+    }
 
-        func create(file path: String, write: Bool = false) throws -> String {
-          switch (self, write) {
-            case (.temp, _):
-              return NSTemporaryDirectory() + path
-            case (.documents, _):
-              return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] + "/" + path
-            case (.resources, false):
-              return try Bundle.main.path(forResource: path, ofType: "") ??
-                         NSError.fileCreateError
-            case (.custom, _):
-              AKLog("ERROR AKAudioFile: custom creation directory not implemented yet")
-              fallthrough
-            default:
-              throw NSError.fileCreateError
-          }
+    static public func createFile(dir: BaseDirectory, file path: String, write: Bool = false) throws -> String {
+        switch (dir, write) {
+        case (.temp, _):
+            return NSTemporaryDirectory() + path
+        case (.documents, _):
+            return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] + "/" + path
+        case (.resources, false):
+            return try Bundle.main.path(forResource: path, ofType: "") ??
+                        NSError.fileCreateError
+        case (.custom, _):
+            AKLog("ERROR AKAudioFile: custom creation directory not implemented yet")
+            fallthrough
+        default:
+            throw NSError.fileCreateError
         }
     }
 

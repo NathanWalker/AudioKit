@@ -42,7 +42,7 @@ extension AKAudioFile {
     /// - m4a: MPEG 4 Audio
     /// - caf: Core Audio Format
     ///
-    public enum ExportFormat {
+    @objc public enum ExportFormat: Int {
         /// Waveform Audio File Format (WAVE, or more commonly known as WAV due to its filename extension)
         case wav
 
@@ -57,27 +57,27 @@ extension AKAudioFile {
 
         /// Core Audio Format
         case caf
+    }
 
-        // Returns a Uniform Type identifier for each audio file format
-        fileprivate var UTI: CFString {
-            switch self {
-            case .wav:
-                return AVFileTypeWAVE as CFString
-            case .aif:
-                return AVFileTypeAIFF as CFString
-            case .mp4:
-                return AVFileTypeAppleM4A as CFString
-            case .m4a:
-                return AVFileTypeAppleM4A as CFString
-            case .caf:
-                return AVFileTypeCoreAudioFormat as CFString
-            }
+    // Returns a Uniform Type identifier for each audio file format
+    static public func stringUTI(type: ExportFormat) -> CFString {
+        switch type {
+        case .wav:
+            return AVFileTypeWAVE as CFString
+        case .aif:
+            return AVFileTypeAIFF as CFString
+        case .mp4:
+            return AVFileTypeAppleM4A as CFString
+        case .m4a:
+            return AVFileTypeAppleM4A as CFString
+        case .caf:
+            return AVFileTypeCoreAudioFormat as CFString
         }
+    }
 
-        // Available Export Formats
-        static var supportedFileExtensions: [String] {
-            return ["wav", "aif", "mp4", "m4a", "caf"]
-        }
+    // Available Export Formats
+    static public var supportedFileExtensions: [String] {
+        return ["wav", "aif", "mp4", "m4a", "caf"]
     }
 
     // MARK: - AKAudioFile public interface with private AKAudioFile ProcessFactory singleton
@@ -296,7 +296,7 @@ extension AKAudioFile {
         let fromFileExt = fileExt.lowercased()
 
         // Only mp4, m4a, .wav, .aif can be exported...
-        guard ExportFormat.supportedFileExtensions.contains(fromFileExt) else {
+        guard AKAudioFile.supportedFileExtensions.contains(fromFileExt) else {
             AKLog("ERROR: AKAudioFile \".\(fromFileExt)\" is not supported for export.")
             callback(nil,
                      NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotCreateFile, userInfo: nil))
@@ -332,12 +332,12 @@ extension AKAudioFile {
             var filePath: String = ""
             var fileName = name
 
-            let fileExt = String(describing: exportFormat)
+            // let fileExt = String(describing: exportFormat)
 
             // only add the file extension if it isn't already there
-            if !fileName.hasSuffix(fileExt) {
-                fileName += "." + fileExt
-            }
+            // if !fileName.hasSuffix(fileExt) {
+            //     fileName += "." + fileExt
+            // }
 
             switch baseDir {
             case .temp:
@@ -386,7 +386,7 @@ extension AKAudioFile {
 
             internalExportSession.outputURL = URL(fileURLWithPath: filePath)
             // Sets the output file encoding (avoid .wav encoded as m4a...)
-            internalExportSession.outputFileType = exportFormat.UTI as String
+            internalExportSession.outputFileType = AKAudioFile.stringUTI(type: exportFormat) as String
 
             // In and OUT times triming settings
             let inFrame: Int64
@@ -426,18 +426,18 @@ extension AKAudioFile {
     // MARK: - ProcessFactory Private class
 
     // private process factory
-    fileprivate class ProcessFactory {
-        fileprivate var processIDs = [Int]()
-        fileprivate var lastProcessID: Int = 0
+    open class ProcessFactory {
+        public var processIDs = [Int]()
+        public var lastProcessID: Int = 0
 
         // Singleton
-        static let sharedInstance = ProcessFactory()
+        static public let sharedInstance = ProcessFactory()
 
         // The queue that will be used for background AKAudioFile Async Processing
-        fileprivate let processQueue = DispatchQueue(label: "AKAudioFileProcessQueue", attributes: [])
+        public let processQueue = DispatchQueue(label: "AKAudioFileProcessQueue", attributes: [])
 
         // Append Normalize Process
-        fileprivate func queueNormalizeAsyncProcess(sourceFile: AKAudioFile,
+        public func queueNormalizeAsyncProcess(sourceFile: AKAudioFile,
                                                     baseDir: BaseDirectory,
                                                     name: String,
                                                     newMaxLevel: Float,
@@ -490,7 +490,7 @@ extension AKAudioFile {
         }
 
         // Append Reverse Process
-        fileprivate func queueReverseAsyncProcess(sourceFile: AKAudioFile,
+        public func queueReverseAsyncProcess(sourceFile: AKAudioFile,
                                                   baseDir: BaseDirectory,
                                                   name: String,
                                                   completionHandler: @escaping AsyncProcessCallback) {
@@ -541,7 +541,7 @@ extension AKAudioFile {
         }
 
         // Append Append Process
-        fileprivate func queueAppendAsyncProcess(sourceFile: AKAudioFile,
+        public func queueAppendAsyncProcess(sourceFile: AKAudioFile,
                                                  appendedFile: AKAudioFile,
                                                  baseDir: BaseDirectory,
                                                  name: String,
@@ -593,7 +593,7 @@ extension AKAudioFile {
         }
 
         // Queue extract Process
-        fileprivate func queueExtractAsyncProcess(sourceFile: AKAudioFile,
+        public func queueExtractAsyncProcess(sourceFile: AKAudioFile,
                                                   fromSample: Int64 = 0,
                                                   toSample: Int64 = 0,
                                                   baseDir: BaseDirectory,
@@ -646,11 +646,11 @@ extension AKAudioFile {
             }
         }
 
-        fileprivate var queuedProcessCount: Int {
+        public var queuedProcessCount: Int {
             return processIDs.count
         }
 
-        fileprivate var scheduledProcessesCount: Int {
+        public var scheduledProcessesCount: Int {
             return lastProcessID
         }
     }
@@ -658,12 +658,12 @@ extension AKAudioFile {
     // MARK: - ExportFactory Private classes
 
     // private ExportSession wraps an AVAssetExportSession with an id and the completion callback
-    fileprivate class ExportSession {
-        fileprivate var avAssetExportSession: AVAssetExportSession
-        fileprivate var id: Int
-        fileprivate var callback: AsyncProcessCallback
+    open class ExportSession: NSObject {
+        public var avAssetExportSession: AVAssetExportSession
+        public var id: Int
+        public var callback: AsyncProcessCallback
 
-        fileprivate init(AVAssetExportSession avAssetExportSession: AVAssetExportSession,
+        public init(AVAssetExportSession avAssetExportSession: AVAssetExportSession,
                          callback: @escaping AsyncProcessCallback) {
             self.avAssetExportSession = avAssetExportSession
             self.callback = callback
@@ -673,17 +673,17 @@ extension AKAudioFile {
     }
 
     // Export Factory is a singleton that handles Export Sessions serially
-    fileprivate class ExportFactory {
+    open class ExportFactory: NSObject {
 
-        fileprivate static var exportSessions = [Int: ExportSession]()
-        fileprivate static var lastExportSessionID: Int = 0
-        fileprivate static var isExporting = false
-        fileprivate static var currentExportProcessID: Int = 0
+        static public var exportSessions = [Int: ExportSession]()
+        static public var lastExportSessionID: Int = 0
+        static public var isExporting = false
+        static public var currentExportProcessID: Int = 0
 
         // Singleton
-        static let sharedInstance = ExportFactory()
+        static public let sharedInstance = ExportFactory()
 
-        fileprivate static func completionHandler() {
+        static public func completionHandler() {
 
             if let session = exportSessions[currentExportProcessID] {
                 switch session.avAssetExportSession.status {
@@ -728,7 +728,7 @@ extension AKAudioFile {
         }
 
         // Append the exportSession to the ExportFactory Export Queue
-        fileprivate static func queueExportSession(session: ExportSession) {
+        static public func queueExportSession(session: ExportSession) {
             exportSessions[session.id] = session
 
             if !isExporting {
